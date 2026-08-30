@@ -1,0 +1,23 @@
+# Secrets: never commit
+**/.env
+**/.env.*
+!**/.env.example
+
+# Java / Node build outputs
+**/target/
+**/node_modules/
+**/.next/
+**/.vinext/
+**/dist/
+**/.wrangler/
+
+# Editors and OS
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+
+# Local archives
+*.zip
