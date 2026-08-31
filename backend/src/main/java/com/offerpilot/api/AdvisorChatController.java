@@ -3,6 +3,7 @@ package com.offerpilot.api;
 import com.offerpilot.domain.Offer;
 import com.offerpilot.repository.OfferRepository;
 import com.offerpilot.service.KnowledgeService;
+import com.offerpilot.service.AgentHarnessService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -20,9 +21,11 @@ public class AdvisorChatController {
     private final KnowledgeService knowledge;
     private final ChatClient chatClient;
     private final boolean aiEnabled;
-    public AdvisorChatController(OfferRepository offers,CityDataController cities,KnowledgeService knowledge,ObjectProvider<ChatClient.Builder> builders,@Value("${offerpilot.ai.enabled:false}") boolean aiEnabled){
-        this.offers=offers;this.cities=cities;this.knowledge=knowledge;ChatClient.Builder builder=builders.getIfAvailable();this.chatClient=builder==null?null:builder.build();this.aiEnabled=aiEnabled&&chatClient!=null;
+    private final AgentHarnessService harness;
+    public AdvisorChatController(OfferRepository offers,CityDataController cities,KnowledgeService knowledge,ObjectProvider<ChatClient.Builder> builders,@Value("${offerpilot.ai.enabled:false}") boolean aiEnabled,AgentHarnessService harness){
+        this.offers=offers;this.cities=cities;this.knowledge=knowledge;this.harness=harness;ChatClient.Builder builder=builders.getIfAvailable();this.chatClient=builder==null?null:builder.build();this.aiEnabled=aiEnabled&&chatClient!=null;
     }
+    @PostMapping("/harness") public AgentHarnessService.HarnessResponse harness(@Valid @RequestBody ChatRequest request){return harness.run(request.question(),request.offerId());}
     @PostMapping public ChatResponse ask(@Valid @RequestBody ChatRequest request){
         long started=System.nanoTime();Offer offer=request.offerId()==null?null:offers.findById(request.offerId()).orElse(null);String city=offer==null?detectCity(request.question()):offer.getCity();
         List<CityDataController.CityProfile> profiles=cities.list().stream().filter(c->city==null||c.city().equals(city)||request.question().contains(c.city())).toList();

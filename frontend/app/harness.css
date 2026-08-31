@@ -1,0 +1,10 @@
+.skill-timeline{margin-top:12px;border:1px solid #dcdcf0;border-radius:12px;overflow:hidden;background:#f8f8fc}
+.skill-timeline header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#292744;color:#fff}
+.skill-timeline header b{font-size:10px}.skill-timeline header span{font-size:8px;color:#cfcde9}
+.skill-timeline details{border-top:1px solid #e5e4f1}
+.skill-timeline summary{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:7px;padding:9px 11px;cursor:pointer}
+.skill-timeline summary i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#5b5bd6;color:#fff;font-size:8px}
+.skill-timeline summary strong{font-size:9px;color:#34334f}.skill-timeline summary span{font-size:8px;color:#77758f}
+.skill-timeline details>div{padding:0 12px 10px}.skill-timeline details small{font-size:7px;letter-spacing:.12em;color:#797793}
+.skill-timeline details p{white-space:pre-wrap;max-height:100px;overflow:auto;margin:3px 0 8px!important;padding:7px;background:#fff;border-radius:6px;font-size:8px!important;color:#55536e!important}
+.skill-timeline footer{padding:7px 12px;color:#8987a0;font:7px monospace;border-top:1px solid #e5e4f1}

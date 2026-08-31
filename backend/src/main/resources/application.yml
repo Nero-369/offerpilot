@@ -41,6 +41,9 @@ management:
 offerpilot:
   ai:
     enabled: ${AI_ENABLED:false}
+    harness:
+      max-skill-calls: 6
+      web-cache-minutes: 15
   qwen:
     api-key: ${QWEN_API_KEY:}
     base-url: ${QWEN_API_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
