@@ -46,9 +46,11 @@ attempt=0
 while [ "$attempt" -lt 24 ]; do
   health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' offerpilot-backend-1 2>/dev/null || true)"
   if [ "$health" = "healthy" ]; then
-    curl -fsS http://127.0.0.1/ >/dev/null
-    echo "部署成功：backend healthy，网站入口响应正常。"
-    exit 0
+    if curl -fsS http://127.0.0.1/ >/dev/null 2>&1; then
+      echo "部署成功：backend healthy，网站入口响应正常。"
+      exit 0
+    fi
+    echo "backend 已健康，等待 Nginx/前端入口就绪……"
   fi
   if [ "$health" = "unhealthy" ] || [ "$health" = "exited" ]; then
     echo "部署失败：backend 状态为 $health"
@@ -59,6 +61,6 @@ while [ "$attempt" -lt 24 ]; do
   sleep 5
 done
 
-echo "部署失败：等待 backend healthy 超时。"
-docker compose logs backend --tail=120
+echo "部署失败：等待 backend 或网站入口就绪超时。"
+docker compose logs backend frontend nginx --tail=120
 exit 1
