@@ -46,8 +46,8 @@ attempt=0
 while [ "$attempt" -lt 24 ]; do
   health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' offerpilot-backend-1 2>/dev/null || true)"
   if [ "$health" = "healthy" ]; then
-    curl -fsS http://127.0.0.1/actuator/health >/dev/null
-    echo "部署成功：backend healthy，公网入口响应正常。"
+    curl -fsS http://127.0.0.1/ >/dev/null
+    echo "部署成功：backend healthy，网站入口响应正常。"
     exit 0
   fi
   if [ "$health" = "unhealthy" ] || [ "$health" = "exited" ]; then
