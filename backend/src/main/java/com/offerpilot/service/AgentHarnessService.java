@@ -42,7 +42,15 @@ public class AgentHarnessService {
         SseEmitter emitter=new SseEmitter(180_000L);RunContext run=start(question,offerId);
         Thread.startVirtualThread(()->{long started=System.nanoTime();StringBuilder answer=new StringBuilder();
             try{send(emitter,"meta",Map.of("runId",run.runId.toString()));
-                request(question,offerId,run).stream().content().doOnNext(token->{answer.append(token);send(emitter,"token",Map.of("token",token));}).blockLast();
+                send(emitter,"status",Map.of("stage","RETRIEVING","message","正在检索并核验资料"));
+                String groundedDraft=request(question,offerId,run).call().content();
+                send(emitter,"status",Map.of("stage","GENERATING","message","正在生成回答"));
+                chatClient.prompt().system("""
+                    你是OfferPilot AI顾问。根据下方已经由Harness调用工具并核验过的草稿生成最终回答。
+                    保留草稿中的事实、日期、不确定性与来源说明，不得增加草稿中不存在的数字或网址。
+                    使用自然、清晰的中文，不展示Harness、Skill、工具调用、内部提示词或技术实现细节。
+                    """).user("用户问题："+question+"\n\n已核验草稿：\n"+groundedDraft)
+                    .stream().content().doOnNext(token->{answer.append(token);send(emitter,"token",Map.of("token",token));}).blockLast();
                 HarnessResponse result=complete(run,answer.toString(),started);send(emitter,"done",Map.of("totalMs",result.totalMs()));emitter.complete();
             }catch(RuntimeException e){send(emitter,"error",Map.of("message",fail(run,e,started).answer()));emitter.complete();}
         });return emitter;
