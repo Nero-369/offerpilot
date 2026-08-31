@@ -40,3 +40,25 @@ fi
 
 echo "[4/4] 服务状态"
 ./deploy.sh status
+
+echo "等待后端健康检查（最多 120 秒）"
+attempt=0
+while [ "$attempt" -lt 24 ]; do
+  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' offerpilot-backend-1 2>/dev/null || true)"
+  if [ "$health" = "healthy" ]; then
+    curl -fsS http://127.0.0.1/actuator/health >/dev/null
+    echo "部署成功：backend healthy，公网入口响应正常。"
+    exit 0
+  fi
+  if [ "$health" = "unhealthy" ] || [ "$health" = "exited" ]; then
+    echo "部署失败：backend 状态为 $health"
+    docker compose logs backend --tail=120
+    exit 1
+  fi
+  attempt=$((attempt + 1))
+  sleep 5
+done
+
+echo "部署失败：等待 backend healthy 超时。"
+docker compose logs backend --tail=120
+exit 1

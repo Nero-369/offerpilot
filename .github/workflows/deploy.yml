@@ -1,0 +1,46 @@
+name: Deploy OfferPilot
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: offerpilot-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Alibaba Cloud ECS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Validate deployment secrets
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+        run: |
+          test -n "$ECS_HOST" || { echo "Missing ECS_HOST"; exit 1; }
+          test -n "$ECS_USER" || { echo "Missing ECS_USER"; exit 1; }
+          test -n "$ECS_SSH_KEY" || { echo "Missing ECS_SSH_KEY"; exit 1; }
+
+      - name: Configure restricted SSH key
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$ECS_SSH_KEY" > ~/.ssh/offerpilot_deploy
+          chmod 600 ~/.ssh/offerpilot_deploy
+          ssh-keyscan -H "$ECS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Run incremental deployment
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+        run: |
+          ssh -o BatchMode=yes -o ConnectTimeout=15 \
+            -i ~/.ssh/offerpilot_deploy \
+            "$ECS_USER@$ECS_HOST" deploy
