@@ -252,7 +252,6 @@ INSERT INTO china_regions(code,province,city,baseline_year,source_url) VALUES
 ('460400','海南省','儋州市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
 ('469000','海南省','省直辖县级行政区划',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
 ('500100','重庆市','重庆市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
-('500200','重庆市','重庆市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
 ('510100','四川省','成都市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
 ('510300','四川省','自贡市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
 ('510400','四川省','攀枝花市',2023,'https://www.stats.gov.cn/sj/tjbz/gjtjbz/202302/t20230213_1902741.html'),
