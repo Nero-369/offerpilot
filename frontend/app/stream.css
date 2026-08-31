@@ -1,0 +1,2 @@
+.stream-cursor{display:inline-block;width:2px;height:1em;margin-left:3px;background:#5b5bd6;vertical-align:-2px;animation:stream-blink .8s steps(1) infinite}
+@keyframes stream-blink{50%{opacity:0}}

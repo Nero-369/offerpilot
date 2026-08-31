@@ -1,0 +1,4 @@
+.region-picker{position:relative}.region-picker>input{width:100%}.region-picker>i{position:absolute;right:12px;top:12px;color:#888;font-size:9px}
+.region-picker>div{position:absolute;z-index:20;top:46px;left:0;right:0;max-height:230px;overflow:auto;background:#fff;border:1px solid #dcdcea;border-radius:10px;box-shadow:0 14px 32px #29274422}
+.region-picker>div button{display:flex;width:100%;justify-content:space-between;align-items:center;border:0;border-bottom:1px solid #efeff5;background:#fff;padding:10px 12px;cursor:pointer;text-align:left}
+.region-picker>div button:hover{background:#f5f4ff}.region-picker>div b{font-size:11px}.region-picker>div span{font-size:8px;color:#858397}

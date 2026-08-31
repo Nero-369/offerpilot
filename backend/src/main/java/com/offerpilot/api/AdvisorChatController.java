@@ -11,6 +11,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.*;
 
 @RestController
@@ -26,6 +27,7 @@ public class AdvisorChatController {
         this.offers=offers;this.cities=cities;this.knowledge=knowledge;this.harness=harness;ChatClient.Builder builder=builders.getIfAvailable();this.chatClient=builder==null?null:builder.build();this.aiEnabled=aiEnabled&&chatClient!=null;
     }
     @PostMapping("/harness") public AgentHarnessService.HarnessResponse harness(@Valid @RequestBody ChatRequest request){return harness.run(request.question(),request.offerId());}
+    @PostMapping(value="/stream",produces="text/event-stream") public SseEmitter stream(@Valid @RequestBody ChatRequest request){return harness.stream(request.question(),request.offerId());}
     @PostMapping public ChatResponse ask(@Valid @RequestBody ChatRequest request){
         long started=System.nanoTime();Offer offer=request.offerId()==null?null:offers.findById(request.offerId()).orElse(null);String city=offer==null?detectCity(request.question()):offer.getCity();
         List<CityDataController.CityProfile> profiles=cities.list().stream().filter(c->city==null||c.city().equals(city)||request.question().contains(c.city())).toList();
