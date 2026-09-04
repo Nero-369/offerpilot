@@ -40,6 +40,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-offerpilot_dev_password}
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:-offerpilot_redis_dev_password}
+      KNOWLEDGE_ADMIN_USER_ID: ${KNOWLEDGE_ADMIN_USER_ID:-}
       SESSION_TIMEOUT: ${SESSION_TIMEOUT:-12h}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       QWEN_API_KEY: ${QWEN_API_KEY:-demo-key-not-used}

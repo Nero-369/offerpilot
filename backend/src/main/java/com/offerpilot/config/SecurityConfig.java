@@ -28,6 +28,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/register", "/actuator/health/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/knowledge", "/api/v1/knowledge/**").access((authentication, context) -> new org.springframework.security.authorization.AuthorizationDecision(
+                                authentication.get().isAuthenticated() && authentication.get().getName().equals(System.getenv("KNOWLEDGE_ADMIN_USER_ID"))))
                         .anyRequest().authenticated())
                 .logout(l -> l.logoutUrl("/api/v1/auth/logout")
                         .invalidateHttpSession(true).clearAuthentication(true)

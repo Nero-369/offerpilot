@@ -38,7 +38,7 @@ public class AdvisorChatController {
         profiles.stream().flatMap(c->c.sources().stream()).forEach(s->{if(sources.stream().noneMatch(x->x.url().equals(s.url())))sources.add(new Source(s.title(),s.url(),city,1));});
         long beforeLlm=System.nanoTime();
         if(aiEnabled)try{
-            String answer=chatClient.prompt().system("你是OfferPilot秋招决策Agent。严格使用RAG检索片段、城市官方资料和Offer回答。每项结论标明事实、估算或建议；资料不足时明确说不知道并列出需向HR确认的问题。引用资料使用[1][2]编号，不得虚构数字或来源，结尾给出可执行下一步。")
+            String answer=chatClient.prompt().system(com.offerpilot.service.CareerAssistantPolicy.SYSTEM + "你是OfferPilot秋招决策Agent。严格使用RAG检索片段、城市官方资料和Offer回答。每项结论标明事实、估算或建议；资料不足时明确说不知道并列出需向HR确认的问题。引用资料使用[1][2]编号，不得虚构数字或来源，结尾给出可执行下一步。")
                 .user("用户问题："+request.question()+"\n\n"+buildContext(offer,profiles,chunks)).call().content();long finished=System.nanoTime();
             return new ChatResponse(answer,sources,"QWEN_RAG",trace(retrieval,(finished-beforeLlm)/1_000_000,(finished-started)/1_000_000));
         }catch(RuntimeException e){return fallback(request,offer,sources,retrieval,started,"Qwen调用失败，已降级："+safeMessage(e));}
