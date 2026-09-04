@@ -1,6 +1,10 @@
 spring:
   application:
     name: offerpilot-backend
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/offerpilot}
     username: ${DB_USER:offerpilot}
@@ -17,6 +21,11 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 2s
+  session:
+    store-type: redis
+    timeout: ${SESSION_TIMEOUT:12h}
+    redis:
+      namespace: offerpilot:session
   ai:
     openai:
       base-url: ${AI_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
@@ -28,6 +37,13 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
   shutdown: graceful
+  servlet:
+    session:
+      cookie:
+        name: OFFERPILOT_SESSION
+        http-only: true
+        secure: ${SESSION_COOKIE_SECURE:false}
+        same-site: lax
 management:
   endpoints:
     web:
@@ -39,6 +55,13 @@ management:
         enabled: true
       show-details: when-authorized
 offerpilot:
+  memory:
+    mode: ${MEMORY_MODE:lightweight}
+    tencentdb:
+      base-url: ${MEMORY_BASE_URL:http://localhost:8420}
+      team-id: ${MEMORY_TEAM_ID:offerpilot}
+      agent-id: ${MEMORY_AGENT_ID:offer-advisor}
+      gateway-api-key: ${MEMORY_GATEWAY_API_KEY:local}
   ai:
     enabled: ${AI_ENABLED:false}
     harness:

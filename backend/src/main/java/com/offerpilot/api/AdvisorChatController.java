@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +27,14 @@ public class AdvisorChatController {
     public AdvisorChatController(OfferRepository offers,CityDataController cities,KnowledgeService knowledge,ObjectProvider<ChatClient.Builder> builders,@Value("${offerpilot.ai.enabled:false}") boolean aiEnabled,AgentHarnessService harness){
         this.offers=offers;this.cities=cities;this.knowledge=knowledge;this.harness=harness;ChatClient.Builder builder=builders.getIfAvailable();this.chatClient=builder==null?null:builder.build();this.aiEnabled=aiEnabled&&chatClient!=null;
     }
-    @PostMapping("/harness") public AgentHarnessService.HarnessResponse harness(@Valid @RequestBody ChatRequest request){return harness.run(request.question(),request.offerId());}
-    @PostMapping(value="/stream",produces="text/event-stream") public SseEmitter stream(@Valid @RequestBody ChatRequest request){return harness.stream(request.question(),request.offerId());}
+    @PostMapping("/harness") public AgentHarnessService.HarnessResponse harness(@Valid @RequestBody ChatRequest request,Authentication auth){return harness.run(request.question(),request.offerId(),request.conversationId(),auth.getName());}
+    @PostMapping(value="/stream",produces="text/event-stream") public SseEmitter stream(@Valid @RequestBody ChatRequest request,Authentication auth){return harness.stream(request.question(),request.offerId(),request.conversationId(),auth.getName());}
     @PostMapping public ChatResponse ask(@Valid @RequestBody ChatRequest request){
         long started=System.nanoTime();Offer offer=request.offerId()==null?null:offers.findById(request.offerId()).orElse(null);String city=offer==null?detectCity(request.question()):offer.getCity();
         List<CityDataController.CityProfile> profiles=cities.list().stream().filter(c->city==null||c.city().equals(city)||request.question().contains(c.city())).toList();
         KnowledgeService.SearchResult retrieval=null;if(knowledge.embeddingConfigured())try{retrieval=knowledge.search(request.question(),city,5);}catch(RuntimeException ignored){}
         List<KnowledgeService.RetrievedChunk> chunks=retrieval==null?List.of():retrieval.chunks();List<Source> sources=new ArrayList<>();
-        chunks.forEach(c->sources.add(new Source(c.title(),c.sourceUrl(),c.city(),c.similarity())));
+        chunks.forEach(c->sources.add(new Source(c.title(),c.sourceUrl(),c.city(),c.similarity(),c.retrievalMode(),c.rrfScore(),c.sectionTitle(),c.effectiveDate(),c.expiryDate())));
         profiles.stream().flatMap(c->c.sources().stream()).forEach(s->{if(sources.stream().noneMatch(x->x.url().equals(s.url())))sources.add(new Source(s.title(),s.url(),city,1));});
         long beforeLlm=System.nanoTime();
         if(aiEnabled)try{
@@ -47,12 +48,14 @@ public class AdvisorChatController {
         String answer=reason+"。"+(offer==null?"请选择一个Offer以加入岗位上下文。":offer.getCompany()+"的"+offer.getRole()+"位于"+offer.getCity()+"，月薪"+offer.getMonthlySalary()+"元、"+offer.getSalaryMonths()+"薪。")+(r==null?"当前未执行向量检索。":"已从pgvector检索到"+r.chunks().size()+"个知识切片，来源在下方；为避免误导，本次不生成开放式结论。问题："+request.question());
         return new ChatResponse(answer,sources,"SAFE_FALLBACK",trace(r,0,(System.nanoTime()-started)/1_000_000));
     }
-    private Trace trace(KnowledgeService.SearchResult r,long llm,long total){return new Trace(r==null?0:r.embeddingMs(),r==null?0:r.vectorSearchMs(),llm,r==null?0:r.chunks().size(),r==null?"未执行":r.embeddingModel(),"pgvector cosine/HNSW",total);}
+    private Trace trace(KnowledgeService.SearchResult r,long llm,long total){return new Trace(r==null?0:r.embeddingMs(),r==null?0:r.vectorSearchMs(),r==null?0:r.keywordSearchMs(),r==null?0:r.fusionMs(),llm,r==null?0:r.chunks().size(),r==null?0:r.vectorCandidates(),r==null?0:r.keywordCandidates(),r==null?"未执行":r.embeddingModel(),r==null?"未执行":r.strategy(),total);}
     private String buildContext(Offer offer,List<CityDataController.CityProfile> profiles,List<KnowledgeService.RetrievedChunk> chunks){StringBuilder b=new StringBuilder("[Offer]\n").append(offer==null?"未指定":offer.getCompany()+" / "+offer.getRole()+" / "+offer.getCity()+" / 月薪"+offer.getMonthlySalary()+" / "+offer.getSalaryMonths()+"薪 / JD:"+offer.getJobDescription()).append("\n\n[城市官方资料]\n").append(profiles).append("\n\n[RAG检索片段]\n");for(int i=0;i<chunks.size();i++){var c=chunks.get(i);b.append('[').append(i+1).append("] ").append(c.title()).append(" | 相似度 ").append(c.similarity()).append(" | ").append(c.sourceUrl()).append('\n').append(c.content()).append("\n\n");}return b.toString();}
     private String detectCity(String q){return cities.list().stream().map(CityDataController.CityProfile::city).filter(q::contains).findFirst().orElse(null);}
     private String safeMessage(Throwable e){String m=e.getMessage();return m==null?e.getClass().getSimpleName():m.substring(0,Math.min(m.length(),180));}
-    public record ChatRequest(@NotBlank @Size(max=2000) String question,UUID offerId){}
-    public record Source(String title,String url,String city,double similarity){}
-    public record Trace(long embeddingMs,long vectorSearchMs,long llmMs,int retrievedChunks,String embeddingModel,String index,long totalMs){}
+    public record ChatRequest(@NotBlank @Size(max=2000) String question,UUID offerId,UUID conversationId){}
+    public record Source(String title,String url,String city,double similarity,String retrievalMode,Double rrfScore,String sectionTitle,java.time.LocalDate effectiveDate,java.time.LocalDate expiryDate){
+        public Source(String title,String url,String city,double similarity){this(title,url,city,similarity,null,null,null,null,null);}
+    }
+    public record Trace(long embeddingMs,long vectorSearchMs,long keywordSearchMs,long fusionMs,long llmMs,int retrievedChunks,int vectorCandidates,int keywordCandidates,String embeddingModel,String index,long totalMs){}
     public record ChatResponse(String answer,List<Source> sources,String mode,Trace trace){}
 }

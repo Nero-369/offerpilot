@@ -6,6 +6,7 @@
 # Java / Node build outputs
 **/target/
 **/.m2repo/
+**/.m2/
 **/node_modules/
 **/.next/
 **/.vinext/

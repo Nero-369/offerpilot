@@ -1,0 +1,23 @@
+{
+  "datasetName": "offerpilot-policy-smoke-v1",
+  "cases": [
+    {
+      "query": "杭州职工社保缴费基数上下限是多少？",
+      "city": "杭州市",
+      "policyType": "社会保险",
+      "asOf": "2026-09-03",
+      "expectedSourceUrls": ["https://请替换成已导入文档的真实来源地址"],
+      "expectedKeywords": ["缴费基数", "上限", "下限"],
+      "k": 5
+    },
+    {
+      "query": "这项政策从什么时候开始执行？",
+      "city": "杭州市",
+      "policyType": "社会保险",
+      "asOf": "2026-09-03",
+      "expectedSourceUrls": ["https://请替换成已导入文档的真实来源地址"],
+      "expectedKeywords": ["施行", "日期"],
+      "k": 5
+    }
+  ]
+}
