@@ -1,0 +1,2 @@
+CREATE TABLE decision_preferences (user_id UUID PRIMARY KEY REFERENCES app_users(id), income INTEGER NOT NULL, growth INTEGER NOT NULL, stability INTEGER NOT NULL, balance INTEGER NOT NULL);
+CREATE TABLE offer_work_details (user_id UUID REFERENCES app_users(id), offer_id UUID REFERENCES offers(id) ON DELETE CASCADE, hours DOUBLE PRECISION, days DOUBLE PRECISION, commute DOUBLE PRECISION, benefits TEXT NOT NULL DEFAULT '', PRIMARY KEY(user_id,offer_id));

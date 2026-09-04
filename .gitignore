@@ -12,6 +12,7 @@
 **/.vinext/
 **/dist/
 **/.wrangler/
+*.tsbuildinfo
 
 # Editors and OS
 .idea/
