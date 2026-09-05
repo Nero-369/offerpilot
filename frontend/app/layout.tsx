@@ -14,16 +14,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://offerpilot-ai.merry-smile-0923.chatgpt.site'),
-  title: 'OfferPilot · 秋招决策 Agent',
+  title: 'OfferPilot · 智能求职决策助手',
   description: '用可信数据和可解释分析，做出更适合你的秋招选择。',
   openGraph: {
-    title: 'OfferPilot · 秋招决策 Agent',
+    title: 'OfferPilot · 智能求职决策助手',
     description: '让每一个 Offer，都有据可选。',
     images: ['/og.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OfferPilot · 秋招决策 Agent',
+    title: 'OfferPilot · 智能求职决策助手',
     description: '让每一个 Offer，都有据可选。',
     images: ['/og.png'],
   },
