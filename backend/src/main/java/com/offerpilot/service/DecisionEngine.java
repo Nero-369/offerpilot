@@ -21,10 +21,10 @@ public class DecisionEngine {
         if (!aiEnabled) return demoAssessment(offer);
         try {
             AiAssessment result = chatClient.prompt()
-                .system("你是OfferPilot决策Agent。只根据提供的岗位数据进行审慎分析，不编造企业事实。输出结构化结果。")
+                .system("你是 OfferPilot 求职决策助手。只根据提供的岗位数据进行审慎分析，不编造企业事实。输出结构化结果；recommendation、strengths、risks 的内容必须全部使用简体中文，技术名称可以保留英文，禁止输出英文句子。")
                 .user("公司：%s；岗位：%s；城市：%s；JD：%s".formatted(offer.getCompany(), offer.getRole(), offer.getCity(), offer.getJobDescription()))
                 .call().entity(AiAssessment.class);
-            return result == null ? demoAssessment(offer) : result;
+            return result == null || !isChinese(result) ? demoAssessment(offer) : result;
         } catch (RuntimeException ex) {
             return demoAssessment(offer);
         }
@@ -35,6 +35,10 @@ public class DecisionEngine {
             "该 Offer 的现金流与岗位方向整体均衡，建议结合团队稳定性和实际工作内容继续核实。",
             List.of("岗位方向与 Java/Spring 技术栈相关", "薪资结构清晰，可进行确定性测算"),
             List.of("年终奖兑现率需要向招聘方确认", "生活成本数据为估算值"));
+    }
+    private boolean isChinese(AiAssessment result) {
+        String text = result.recommendation() + String.join("", result.strengths()) + String.join("", result.risks());
+        return text.codePoints().filter(c -> Character.UnicodeScript.of(c) == Character.UnicodeScript.HAN).count() >= 10;
     }
     public record AiAssessment(int jobMatchScore, int growthScore, int stabilityScore, String recommendation, List<String> strengths, List<String> risks) {}
 }
